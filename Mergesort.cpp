@@ -1,84 +1,78 @@
 #include <iostream>
-#include <stdlib.h>
 #include <fstream>
 #include <vector>
 #include <iterator>
+
 using namespace std;
 
-vector <long> vec;
+vector<long> vec;
 
-void merge(vector<long> vec, long start, long mid, long end, vector<long> temp); 
+void merge(vector<long>& vec, int left, int mid, int right, vector<long>& temp);
 
-void mergesort(vector<long> vec){
-	vector<long> temp;
-	for (int width = 1; width < vec.size(); width  = 2 * width){
-		for(int i = 0; i < vec.size(); i = i + 2 * width){
-			long start = i;
-			long mid = i + (width - 1);
-			if (mid >= vec.size()){
-				mid = vec.size() - 1;
-			}
-			long end = i + ((2* width) - 1);
-			if(end >= vec.size()){
-				end = vec.size() - 1;
-			}
-			merge(vec, start, mid, end, temp);
-		}
-		for (int j = 0; j < vec.size(); j++){
-			vec[j] = temp[j];
-		}
-	}
-
+int min(int a, int b) {
+    return (a <= b) ? a : b;
 }
 
-void merge(vector<long> vec, long start, long mid, long end, vector<long> temp){
-	long i = start;
-	long j = mid;
-	long k = start;
-	while ((i <= mid) && (j <= end)){
-		if (vec[i] <= vec[j]){
-			temp[k] = vec[i];
-			i++;
-		}else{
-			temp[k] = vec[j];
-			j++;
-		}
-		k++;
-	}
-	while (i <= mid){
-		temp[k] = vec[i];
-		i++;
-		k++;		
-	}
-	while (j <= end){
-		temp[k] = vec[j];
-		j++;
-		k++;
-	}
-	
+void copy(vector<long>& temp, vector<long>& vec, int n)
+{
+    for(int i = 0; i < n; i++)
+        vec[i] = temp[i];
 }
 
-int main(){
-        string line;
-        long num;
-        ifstream input ("inData.txt");
-        if (input.is_open()){
-               while (getline (input, line))
-                {
-                        num = atoi(line.c_str());
-                        vec.push_back (num);
-                }
-                input.close();
-       	}else{
-		cout << "Unable to open file";
+void mergesort(vector<long>& vec, vector<long>& temp, int n) {
+    for (int width = 1; width < n; width = 2 * width)
+    {
+        for (int i = 0; i < n; i = i + 2 * width)
+        {
+            merge(vec, i, min(i+width, n), min(i+2*width, n), temp);
         }
-        mergesort(vec);
-        ofstream output;
-        output.open ("outData.txt");      
-	copy(vec.begin(), vec.end(), ostream_iterator<long>(output, "\n"));
-	output << endl;
+        copy(temp, vec, n);
+    }
+}
 
-	output.close();
-        return 0;
+void merge(vector<long>& vec, int left, int mid, int right, vector<long>& temp) {
+
+    int leftEnd = mid - 1;
+    int tempP = left;
+    int num = right - left + 1;
+    while ((left <= leftEnd) && (mid <= right)) {
+        if (vec[left] <= vec[mid]) {
+            temp[tempP++] = move(vec[left++]);
+        } else {
+            temp[tempP++] = move(vec[mid++]);
+        }
+    }
+    while (left <= leftEnd) {
+        temp[tempP++] = move(vec[left++]);
+    }
+    while (mid <= right) {
+        temp[tempP++] = move(vec[mid++]);
+    }
+    for (int i = 0; i < num; i++, right--) {
+        vec[right] = move(temp[right]);
+    }
+}
+
+int main() {
+    string line;
+    long num;
+    ifstream input("inData.txt");
+    if (input.is_open()) {
+        while (getline(input, line)) {
+            num = atoi(line.c_str());
+            vec.push_back(num);
+        }
+        input.close();
+    } else {
+        cout << "Unable to open file";
+    }
+    vector<long> temp(vec.size());
+    mergesort(vec, temp, vec.size());
+    ofstream output;
+    output.open("outData.txt");
+    copy(vec.begin(), vec.end(), ostream_iterator<long>(output, "\n"));
+    output << endl;
+    output.close();
+    return 0;
 }
 
